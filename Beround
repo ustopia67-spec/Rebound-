@@ -1,0 +1,75 @@
+---====== Load spawner ======---
+
+local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
+
+---====== Create entity ======---
+
+local entity = Spawner:Create({
+	Entity = {
+		Name = "Rebound",
+		Asset = "rbxassetid://134545499081771",
+		HeightOffset = 0
+	},
+	Lights = {
+		Flicker = {
+			Enabled = false,
+			Duration = 5
+		},
+		Shatter = false,
+		Repair = false
+	},
+	Earthquake = {
+		Enabled = false
+	},
+	CameraShake = {
+		Enabled = true,
+		Range = 100,
+		Values = {4, 20, 0.1, 1}
+	},
+	Movement = {
+		Speed = 85,
+		Delay = 6,
+		Reversed = true
+	},
+	Rebounding = {
+		Enabled = false,
+		Type = "Blitz",
+		Min = 1,
+		Max = math.random(1, 2),
+		Delay = math.random(10, 30) / 10
+	},
+	Damage = {
+		Enabled = false,
+		IgnoreHiding = false,
+		Range = 40,
+		Amount = 999
+	},
+	Crucifixion = {
+    Type = "Guiding",
+		Enabled = true,
+		Range = 45,
+		Resist = true,
+		Break = true
+	},
+	Death = {
+		Type = "Guiding",
+		Hints = {"Oh. Hello this is rebound", "He attacks from door you need to open.", "Well... I'll see you later, right?"},
+		Cause = "Rebound"
+	}
+})
+
+local TweenService = game:GetService("TweenService")
+
+local Reboundcolor = Instance.new("ColorCorrectionEffect",game.Lighting) game.Debris:AddItem(Reboundcolor,24)
+Reboundcolor.Name = "Warn"
+local TW2 = TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(1),{TintColor = Color3.fromRGB(65, 138, 255)})
+TW2:Play()
+Reboundcolor.Saturation = -0.7 
+Reboundcolor.Contrast = 0.2
+game.TweenService:Create(Reboundcolor,TweenInfo.new(15),{TintColor = Color3.fromRGB(255, 255, 255),Saturation = 0, Contrast = 0}):Play()
+local TW = TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(5),{TintColor = Color3.fromRGB(255, 255, 255)})
+TW:Play()
+
+entity:Run(true)
+
+task.wait(13)
