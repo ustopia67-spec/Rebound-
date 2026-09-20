@@ -27,7 +27,7 @@ local entity = Spawner:Create({
 		Values = {4, 20, 0.1, 1}
 	},
 	Movement = {
-		Speed = 85,
+		Speed = 805,
 		Delay = 6,
 		Reversed = true
 	},
@@ -39,7 +39,7 @@ local entity = Spawner:Create({
 		Delay = math.random(10, 30) / 10
 	},
 	Damage = {
-		Enabled = false,
+		Enabled = true,
 		IgnoreHiding = false,
 		Range = 40,
 		Amount = 999
