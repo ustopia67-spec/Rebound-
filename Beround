@@ -6,47 +6,59 @@ function GitAud(soundgit,filename)
     return (getcustomasset or getsynasset)(FileName..".mp3")
 end
 
+function CustomGitSound(soundlink, vol, filename)
+    local sound = Instance.new("Sound")
+    sound.SoundId = GitAud(soundlink, filename)
+    sound.Parent = workspace
+    sound.Name = "reboundspawn"
+    sound.Volume = 3
+    sound.PlaybackSpeed = 1
+   sound:Play()
+end
+
+CustomGitSound("https://github.com/Anctarus7105/Custom-Sounds/raw/main/ReboundWarning.mp3", 1, "reboundspawn")
+
 wait(0)
-local maxRebounds = 3
+local maxRebounds = 8
+local reboundCount = 0 -- Contador para alternar entre as direções
 local cameraShaker = require(game.ReplicatedStorage.CameraShaker)
 local camera = workspace.CurrentCamera
 local camShake = cameraShaker.new(Enum.RenderPriority.Camera.Value, function(cf)
     camera.CFrame = camera.CFrame * cf
 end)
 
--- Modified LoadCustomInstance to match THEHORROR's retry system
-function LoadCustomInstance(assetId, parent)
+function LoadCustomInstance(url, parent)
     local model
 
-    -- Retry system: keep trying until model is loaded
     while wait() and not model do
-        print("ðŸ”„ Trying to load model with Asset ID: " .. assetId)  -- Debug message
+        print("🔄 Trying to load model from GitHub URL...")
 
-        -- Attempt to load the model from the asset ID
         local success, result = pcall(function()
-            return game:GetObjects("rbxassetid://" .. assetId)[1]
+            local decoded = game:HttpGet(url)
+            local tempPath = "temp_rebound_model.rbxm"
+            writefile(tempPath, decoded)
+            local loadedModel = game:GetObjects(getcustomasset(tempPath))[1]
+            return loadedModel
         end)
 
         if success and result then
             model = result
             model.Parent = parent or workspace
 
-            -- Remove unwanted scripts from the model (deep clean)
             for _, obj in ipairs(model:GetDescendants()) do
                 if obj:IsA("Script") or obj:IsA("LocalScript") then
                     obj:Destroy()
                 end
             end
 
-            -- Apply internal tag to mark the model as loaded by the executor
             pcall(function()
                 model:SetAttribute("LoadedByExecutor", true)
             end)
 
-            print("âœ… [LoadCustomInstance]: Model " .. model.Name .. " successfully loaded into " .. model.Parent:GetFullName())  -- Success message with emoji
+            print("✅ [LoadCustomInstance]: Model " .. model.Name .. " successfully loaded into " .. model.Parent:GetFullName())
         else
-            print("âŒ [LoadCustomInstance]: Failed to load model ID " .. tostring(assetId) .. ". Retrying... ðŸ”„")  -- Failure message with retry info
-            wait(0.5)  -- Short wait to avoid overwhelming the system with continuous calls
+            print("❌ [LoadCustomInstance]: Failed to load model from GitHub. Retrying... 🔄")
+            wait(0.5)
         end
     end
 
@@ -54,7 +66,7 @@ function LoadCustomInstance(assetId, parent)
 end
 
 function Move()
-    local s = LoadCustomInstance("12254145022", workspace)
+    local s = LoadCustomInstance("https://github.com/junin724/Depth/raw/refs/heads/main/rebound%20ultra%20new.rbxm", workspace)
     s.Parent = workspace
     local val = 60
     local killed = false
@@ -67,12 +79,25 @@ function Move()
 
     print("[Rebound] Entity found: Hello World!")
 
-    local function GetLastRoom()
-        logo = workspace.CurrentRooms
-        return logo[game.ReplicatedStorage.GameData.LatestRoom.Value + 1]
+    local gruh = workspace.CurrentRooms
+    local latestRoomVal = game.ReplicatedStorage.GameData.LatestRoom.Value
+
+    -- Incrementa o contador de vai-e-vem a cada investida
+    reboundCount = reboundCount + 1
+    local directionType = (reboundCount % 2 == 1) and "ExitToEntrance" or "EntranceToExit"
+
+    -- Define onde ele nasce com base na direção atual
+    if directionType == "ExitToEntrance" then
+        if gruh[latestRoomVal + 1] and gruh[latestRoomVal + 1]:FindFirstChild("RoomExit") then
+            entity.CFrame = gruh[latestRoomVal + 1].RoomExit.CFrame
+        end
+    else
+        if gruh[1] and gruh[1]:FindFirstChild("RoomEntrance") then
+            entity.CFrame = gruh[1].RoomEntrance.CFrame
+        end
     end
 
-    entity.CFrame = GetLastRoom().RoomExit.CFrame
+    task.wait(0.1)
 
     local function canSeeTarget(target, size)
         if killed then return false end
@@ -87,11 +112,7 @@ function Move()
         return false
     end
 
-    -- Espera 3 segundos
-    wait(3)
-
-    -- Completa o Ãºltimo 1 segundo restante (total de 4 segundos antes de mover)
-    wait(1)
+    wait(4)
 
     spawn(function()
         while entity ~= nil do 
@@ -119,7 +140,7 @@ function Move()
                     Rebound.BackgroundTransparency = 1
                     Rebound.Position = UDim2.new(0.4866, 0, 0.4793, 0)
                     Rebound.Size = UDim2.new(0.0267, 0, 0.0387, 0)
-                    Rebound.Image = "rbxassetid://10914800940"
+                    Rebound.Image = "rbxassetid://136184103476873"
 
                     JSSIZE.Name = "JSSIZE"
                     JSSIZE.Parent = ReboundJs
@@ -127,7 +148,13 @@ function Move()
                     JSSIZE.Position = UDim2.new(-0.586, 0, -1.251, 0)
                     JSSIZE.Size = UDim2.new(2.128, 0, 3.081, 0)
                     JSSIZE.Visible = false
-                    JSSIZE.Image = "rbxassetid://10914800940"
+                    JSSIZE.Image = "rbxassetid://136184103476873"
+
+                    local jumpscareSound = Instance.new("Sound")
+                    jumpscareSound.SoundId = "rbxassetid://109582246349306"
+                    jumpscareSound.Volume = 10
+                    jumpscareSound.Parent = ReboundJs
+                    jumpscareSound:Play()
 
                     coroutine.wrap(function()
                         local script = Static
@@ -180,19 +207,61 @@ function Move()
         end
     end)
 
-    -- Move the entity to the entrance room
-    local gruh = workspace.CurrentRooms
-    for i = game.ReplicatedStorage.GameData.LatestRoom.Value, 1, -1 do
-        if gruh:FindFirstChild(i) then
-            local room = gruh[i]
-            if room:FindFirstChild("RoomEntrance") then
-                local a = room.RoomEntrance
-                local tween = game.TweenService:Create(entity, TweenInfo.new(2, Enum.EasingStyle.Sine), {CFrame = a.CFrame})
-                tween:Play()
-                tween.Completed:Wait()
+    -- Executa o movimento dependendo de qual direção ele começou
+    if directionType == "ExitToEntrance" then
+        for i = latestRoomVal, 1, -1 do
+            if gruh:FindFirstChild(i) then
+                local room = gruh[i]
+                if room:FindFirstChild("RoomEntrance") then
+                    local a = room.RoomEntrance
+                    local tween = game.TweenService:Create(entity, TweenInfo.new(2, Enum.EasingStyle.Sine), {CFrame = a.CFrame})
+                    tween:Play()
+                    tween.Completed:Wait()
+                    
+                    local door = room:FindFirstChild("Door") or room:FindFirstChild("Doors")
+                    local shouldPause = true
+                    if door then
+                        local lockedAttr = door:GetAttribute("Locked")
+                        local openAttr = door:GetAttribute("Opened")
+                        if lockedAttr == true or openAttr == false then
+                            shouldPause = false
+                        end
+                    end
+
+                    if shouldPause then
+                        task.wait(0.1)
+                    end
+                end
+            end
+        end
+    else
+        for i = 1, latestRoomVal + 1 do
+            if gruh:FindFirstChild(i) then
+                local room = gruh[i]
+                if room:FindFirstChild("RoomExit") then
+                    local a = room.RoomExit
+                    local tween = game.TweenService:Create(entity, TweenInfo.new(2, Enum.EasingStyle.Sine), {CFrame = a.CFrame})
+                    tween:Play()
+                    tween.Completed:Wait()
+                    
+                    local door = room:FindFirstChild("Door") or room:FindFirstChild("Doors")
+                    local shouldPause = true
+                    if door then
+                        local lockedAttr = door:GetAttribute("Locked")
+                        local openAttr = door:GetAttribute("Opened")
+                        if lockedAttr == true or openAttr == false then
+                            shouldPause = false
+                        end
+                    end
+
+                    if shouldPause then
+                        task.wait(0.1)
+                    end
+                end
             end
         end
     end
+
     entity.Anchored = false
     entity.CanCollide = false
     game.Debris:AddItem(s, 5)
@@ -203,15 +272,11 @@ function Rebound()
     Warn.TintColor = Color3.fromRGB(65, 138, 255)
     Warn.Saturation = -0.7
     Warn.Contrast = 0.2
-
-    local tween = game.TweenService:Create(Warn, TweenInfo.new(3), {
+    game.TweenService:Create(Warn, TweenInfo.new(15), {
         TintColor = Color3.fromRGB(255, 255, 255),
         Saturation = 0,
         Contrast = 0
-    })
-    tween:Play()
-    
-    game.Debris:AddItem(Warn, 3)
+    }):Destroy()
 
     camShake:Start()
     camShake:ShakeOnce(10, 3, 0.1, 6, 2, 0.5)
@@ -219,23 +284,13 @@ function Rebound()
 
     while maxRebounds > 0 do
         game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
-        wait(5)
+        wait(4)
         pcall(Move)
         maxRebounds = maxRebounds - 1
     end
 
-    wait(3)
-
-    ---====== Load achievement giver ======---
-    local achievementGiver = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()
-
-    ---====== Display achievement ======---
-    achievementGiver({
-        Title = "Out of many rebounds",
-        Desc = "Back for more",
-        Reason = "Survive Rebound",
-        Image = ""
-    })
+    wait(15.3)
+    Warn:Destroy()
 end
 
 pcall(Rebound)
